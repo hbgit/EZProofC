@@ -1,0 +1,111 @@
+---------------------------- EZPROOFC TOOL (Beta) v3 -------------------------------
+
+		  .-.
+		  /v\
+		 // \\    > L I N U X - GPL<
+		/(   )\
+		 ^^-^^
+_____________________________________________________________________________________________________________________
+		
+Goal: This tool aims to automate the method proposed aims to automate the collection and manipulation of counterexamples in order to instantiate a C program for proving the root cause of the identiﬁed error. Such method may be seen as a complementary technique for the veriﬁcation performed by Bounded Model Checkers 
+
+Author: Herbert O. Rocha E-mail: herberthb12@gmail.com
+Version: 3 - Year: 2012
+
+Status: This tool is still in development phase to full implementation of the proposed method in this approach.
+_____________________________________________________________________________________________________________________
+-> Requirements for using the tool
+_____________________________________________________________________________________________________________________
+
+To use this tool is necessary that the system contains the following software already installed properly:
+
+- Python;
+- Perl;
+- And the ESBMC model checker, which you should set the environment variable PATH in your .bashrc.
+_____________________________________________________________________________________________________________________
+
+-> How to install ESBMC?
+_____________________________________________________________________________________________________________________
+
+The ESBMC can be downloaded at http://esbmc.org/
+
+In order to install ESBMC on your PC, you should download and save the esbmc-vx.x.tar.gz file on your disk. 
+After that, you should type the following command:
+
+$ tar -xzvf esbmc-v1.12.tar.gz
+
+The ESBMC distribution is split into three directories:
+
+- bin
+- smoke-tests
+- licenses
+
+The directory bin contains the binary file of ESBMC. The directory smoke-tests contains some ANSI-C programs and also 
+includes a shell script that can be used to collect experimental results for different ANSI-C benchmarks 
+(e.g., check the encoding time, decision procedure time, total number of lines of code, total number of properties 
+to be verified, how many properties passed, violated and failed during the verification process).
+
+You should set the environment variable PATH in your .bashrc file as follows:
+
+$ export PATH=$PATH:/home/herbert/esbmc-vx.x/bin/
+_____________________________________________________________________________________________________________________
+
+-> How to install EZProofC?
+_____________________________________________________________________________________________________________________
+
+In order to install EZProofC on your PC, you should download and save the EZProofC_vx.tar.gz file on your disk. 
+After that, you should type the following command:
+
+>> STEP 1:
+
+$ tar -xzvf EZProofC_vx.tar.gz
+
+The FORTES distribution is split into directories and files:
+
+- code_samples (Samples codes to apply EZProofC) 
+- modules
+  - instanciation
+  - preprocessor
+  - verification	
+- README  
+- ezproofc.sh 
+- config.sh
+
+>> STEP 2:
+
+Open the directory where the EZProofC tool was extracted and then you should locate the config.sh and fortes script. After that, you should run the config.sh script, it is worth to say that you should run the config.sh script from inside the directory where EZProofC was extracted.
+
+Example:
+
+1) $ cd EZProofC_vx
+2) $ ls
+	code_samples  <config.sh>  <ezproofc>  modules  README
+3) $ ./config.sh
+
+
+>> STEP 3:
+
+It is advisable that you should set the environment variable PATH in your .bashrc file as follows:
+
+$ export PATH=$PATH:/home/user/EZProofC_vx/
+
+>> STEP 4:
+
+Testing EZProofC
+
+$ ezproofc code_samples/D_CBMC_bound_array.c
+
+_____________________________________________________________________________________________________________________
+
+-> How running the EZProofC?
+_____________________________________________________________________________________________________________________
+
+Running EZProofC.
+
+$ ezproofc <file.c>
+
+For help and others options:
+
+$ ezproofc -h
+_____________________________________________________________________________________________________________________
+---------------------------------------------------------------------------------------------------------------------

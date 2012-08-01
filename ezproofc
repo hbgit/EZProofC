@@ -1,0 +1,430 @@
+#!/bin/bash
+#
+#---------------------------------------------------------------------
+# EZPROOFC tool
+#---------------------------------------------------------------------
+# Goal: This tool aims to automate the method proposed aims to automate
+#			the collection and manipulation of counterexamples in order
+#			to instantiate a C program for proving the root cause of the
+#			identiﬁed error. Such method may be seen as a complementary
+#			technique for the veriﬁcation performed by Bounded Model 
+#			Checkers
+#
+# Author: Herbert O. Rocha - E-mail: herberthb12@gmail.com
+# Version: 3 - Year: 2012
+# License: GPL
+#---------------------------------------------------------------------
+
+
+ABS_PATH_EZPROOFC="[<??>]"
+
+flag_ABS=`echo $ABS_PATH_EZPROOFC | grep -c "\[<??>\]"`
+if [ $flag_ABS -eq 1 ];
+then
+	echo "Sorry, you need to run the config.sh script first. See REAME file."
+	exit 1;
+fi
+
+
+
+#--------------------------------------------------------------------
+#settings preprocessor and arch flag
+get_arch=`arch`
+set_arch=0
+
+if [ $get_arch == "x86_64" ];
+then
+	set_arch="--64"	
+	DIR_PROC_PRIMARY=$ABS_PATH_EZPROOFC"/modules/preprocessor/primary_preprocessing/arch_64/uncrustify"
+else
+	set_arch="--32"
+	DIR_PROC_PRIMARY=$ABS_PATH_EZPROOFC"/modules/preprocessor/primary_preprocessing/arch_32/uncrustify"	
+fi
+CONFIG_CFG=$ABS_PATH_EZPROOFC"/modules/preprocessor/primary_preprocessing/ben.cfg"
+DIR_PROC_AUX=$ABS_PATH_EZPROOFC"/modules/preprocessor/aux_preprocessing/aux_formatting.pl"
+#--------------------------------------------------------------------
+
+#--------------------------------------------------------------------
+#Settings for Abstraction and Isnstanciation
+DIR_ABS_AND_INST=$ABS_PATH_EZPROOFC"/modules/instanciation/"
+DIR_RESULT_NEW_CODE=$ABS_PATH_EZPROOFC"/result_instrument.out"
+
+#
+DIR_RESULT_ABS=$DIR_ABS_AND_INST"result_abstration.dir"
+PATH_ABS_P_DIR=$DIR_ABS_AND_INST"result_abs_property.p"
+PROG_ABSTRATION=$DIR_ABS_AND_INST"abs_CE_v10_IN.pl"
+PROG_INSTRUMENT=$DIR_ABS_AND_INST"go_instrument_v2_IN.pl"
+PROG_INSERT_PROPERTY=$DIR_ABS_AND_INST"go_insert_property.pl"
+
+# For Verification
+DIR_VERIFICATION=$ABS_PATH_EZPROOFC"/modules/verification/"
+NAME_PROG_VERIFICATION=$DIR_VERIFICATION"checkAllClaims.sh"
+#--------------------------------------------------------------------
+
+#====================================================================
+#------------------------------ functions ---------------------------
+#Run verification for all claims in the code and then it applies the
+#EZProofC Method
+run_ezproofc_check_ALL()
+{		
+	#Verifying the C program	
+	if [ -e "$1" ]; 
+	then
+		if [ $# -gt 1 ];
+		then			
+			echo "Not implemented yet, sorry :( - Try ezproofc -h"			
+		else			
+			
+			#preprocessing the C program that will be analysed				 
+			exec_processadorc $1 
+			
+			#remove old results
+			if [ -d "$DIR_RESULT_NEW_CODE" ]; then									
+				rm -r $DIR_RESULT_NEW_CODE
+			fi
+			if [ -d "$DIR_RESULT_ABS" ]; then					
+				rm -r $DIR_RESULT_ABS
+			fi		
+			if [ -d "$PATH_ABS_P_DIR" ]; then					
+				rm -r $PATH_ABS_P_DIR
+			fi
+			
+			CHECK_out_verification=$(ls $DIR_VERIFICATION | wc -l)			
+			if [ $CHECK_out_verification -gt 1 ]; then
+				rm -r $DIR_VERIFICATION*.dir
+			fi			
+			
+			#Start verification
+			inic_checkClaims_All
+			
+		fi
+		
+	else
+		echo "No <file.c> found - Please try again, or try ezproofc -h" 		
+	fi	
+	
+}
+
+
+#======================================================================
+# option -e <file.c> <counterexample.tmp> || --addassert
+#STATUS: OKAY
+run_ezproofc_with_CE(){
+	
+	#check if there are valid pathes for files		
+	if [ -e "$1" ] && [ -e "$2" ]; 
+	then			
+		if [ $# -gt 2 ];
+		then
+			# Check $3 option
+			chk_op3=`echo $3 | grep -c "addassert"`
+			if [ $chk_op3 -eq 1 ];
+			then
+				# Using option --addassert		
+				$PROG_ABSTRATION $1 $2 $3								
+				$PROG_INSTRUMENT $1 $DIR_RESULT_ABS
+				$PROG_INSERT_PROPERTY
+				
+				#get name for new code								
+				CE_name=`echo $2 | grep -o "[^\/]*$" | grep -o "^[^.]*"`			
+				new_name_file=`ls $DIR_RESULT_NEW_CODE"/"$CE_name"/"*.c`			
+							
+				#last pre-process
+				$DIR_PROC_PRIMARY -q -l C -c $CONFIG_CFG -f $new_name_file
+												
+				#remove temporary files				
+				if [ -d "$DIR_RESULT_NEW_CODE" ]; then									
+					rm -r $DIR_RESULT_NEW_CODE
+				fi
+				if [ -d "$DIR_RESULT_ABS" ]; then					
+					rm -r $DIR_RESULT_ABS
+				fi		
+				if [ -d "$PATH_ABS_P_DIR" ]; then					
+					rm -r $PATH_ABS_P_DIR
+				fi
+			
+								
+			else
+				echo "Sorry, no <$3> option found, check out ezproofc -h"
+			fi				
+		else
+						
+			$PROG_ABSTRATION $1 $2
+			$PROG_INSTRUMENT $1 $DIR_RESULT_ABS
+						
+			#get name for new code				
+			CE_name=`echo $2 | grep -o "[^\/]*$" | grep -o "^[^.]*"`			
+			new_name_file=`ls $DIR_RESULT_NEW_CODE"/"$CE_name"/"*.c`						
+							
+			#last pre-process
+			$DIR_PROC_PRIMARY -q -l C -c $CONFIG_CFG -f $new_name_file
+											
+			#remove temporary files
+			
+			if [ -d "$DIR_RESULT_NEW_CODE" ]; then									
+				rm -r $DIR_RESULT_NEW_CODE
+			fi
+			if [ -d "$DIR_RESULT_ABS" ]; then					
+				rm -r $DIR_RESULT_ABS
+			fi		
+			
+		fi		
+	else
+		echo "No <$1> or <$2> found - Please try again" 
+	fi
+	
+	
+}
+
+
+#==================================================================== 
+#--------------------------auxiliary functions ------------------------
+
+#./uncrustify -q -l C -c ben.cfg -f ../ccode_here/testCode.c
+exec_processadorc()
+{	
+	#verifying if there is a directory in the path' code	
+	name_program=$(echo $1 | grep -o "[^/]*$")	
+	rec_file="pre_$name_program"
+	rec_path=$(echo $1 | sed "s/$name_program/$rec_file/g") 
+	
+	#global var
+	FILE_PREPROCESSOR=$rec_path
+	
+	#Apply preprocessor	
+	$DIR_PROC_PRIMARY -q -l C -c $CONFIG_CFG -f $1 > $rec_path		
+}
+
+
+
+#-----------------------------
+#Verify all claims in the C program
+inic_checkClaims_All()
+{
+	
+	file=$FILE_PREPROCESSOR
+	
+	echo "-> Start Verification with ESBMC"	
+		
+	$NAME_PROG_VERIFICATION $file
+		
+	echo "-> Selecting files with counterexample to the next step"	
+	#seleção dos files.tmp que contem contra-exemplo e instrumentacao
+		
+	name_file=`echo $FILE_PREPROCESSOR | grep -o "[^/]*$" | grep -o "^[^.]*"`
+					
+	DIR_CE=$(ls -1 $DIR_VERIFICATION*.dir | sort )
+			
+	for file_in_dir in $DIR_CE
+	do		
+		result_tmp=`cat $DIR_VERIFICATION$name_file"_result.dir"/$file_in_dir | grep "VERIFICATION FAILED"`		
+		
+		if [ -n "$result_tmp" ]; 
+		then				
+			#checking if the CE has some properties with UPPER and LOWER bound
+			know_CE_UL=`cat $DIR_VERIFICATION$name_file"_result.dir"/$file_in_dir | grep -c "upper bound"`				
+						
+			#We got a upper bound
+			if [ $know_CE_UL -eq 1 ];
+			then
+				#incializa o processo de abstração dos dados do contra-exemplo
+				#add --addassert
+				inc_abs_instrument $DIR_VERIFICATION$name_file"_result.dir"/$file_in_dir 1
+				
+				#inicializa o processo de instrumentação e criação dos novos códigos
+				inc_now_instrument 1
+				
+			else
+				#incializa o processo de abstração dos dados do contra-exemplo
+				inc_abs_instrument $DIR_VERIFICATION$name_file"_result.dir"/$file_in_dir
+				
+				#inicializa o processo de instrumentação e criação dos novos códigos
+				inc_now_instrument
+			fi
+				
+		fi
+			
+	done
+	
+	echo "________________________________________________________"	
+	echo "=> The results are in: "
+	echo $DIR_RESULT_NEW_CODE	
+	
+}
+
+inc_abs_instrument()
+{
+	echo "-> Starting  the abstration of data from counterexamples"
+	
+	#---------------
+	# FROM: check_ALL
+	# $1 -> counterexample.tmp
+	# $2 -> 1 == --addassert
+	
+	# check how many args for input modules
+	# ./$PROG_ABSTRATION <code.c> <counterexample.tmp> [1 == --addassert]
+	if [ $# -gt 1 ];
+	then		
+		$PROG_ABSTRATION $FILE_PREPROCESSOR $1 --addassert		
+	else	
+		$PROG_ABSTRATION $FILE_PREPROCESSOR $1		
+	fi
+	
+}
+
+inc_now_instrument()
+{	
+	echo "-> Starting the instantiation of new C source code"
+	#---------------
+	# FROM: check_ALL
+	# $1 -> counterexample.tmp
+	# $2 -> 1 to insert an assertion
+		
+	if [ $# -ge 1 ] ;
+	then
+		$PROG_INSTRUMENT $FILE_PREPROCESSOR $DIR_RESULT_ABS		
+		$PROG_INSERT_PROPERTY
+	else		
+		$PROG_INSTRUMENT $FILE_PREPROCESSOR $DIR_RESULT_ABS		
+	fi	
+	
+}
+
+run_uncrustify_pre(){
+	#Apply preprocessor	
+	$DIR_PROC_PRIMARY -q -l C -c $CONFIG_CFG -f $1
+}
+
+clean_old(){
+	#remove old results
+	if [ -d "$DIR_RESULT_NEW_CODE" ]; then									
+		rm -r $DIR_RESULT_NEW_CODE
+	fi
+	if [ -d "$DIR_RESULT_ABS" ]; then					
+		rm -r $DIR_RESULT_ABS
+	fi		
+	if [ -d "$PATH_ABS_P_DIR" ]; then					
+		rm -r $PATH_ABS_P_DIR
+	fi
+	
+	CHECK_out_verification=$(ls $DIR_VERIFICATION | wc -l)			
+	if [ $CHECK_out_verification -gt 1 ]; then
+		rm -r $DIR_VERIFICATION*.dir
+	fi
+}
+
+#------------------------------ end functions -------------------------
+#====================================================================
+
+
+
+#====================================================================
+#------------------------------- main --------------------------------
+#Checking the options
+if [ $# -ge 1 ];
+then	
+	while getopts  "he:::p:c" flag
+	do		
+		case "${flag}" in
+			h) 
+				received_h=1			
+			;;			
+			e) 
+				received_e=1				
+				#path C Program
+				arg_1="${2}"				
+				#path Counterexample
+				arg_2="${3}"						
+				#option for abstraction
+				arg_3="${4}"
+			;;
+			p) 
+				received_p=1
+				#path C Program
+				arg_1="${2}"				
+			;;
+			c) 
+				received_c=1			
+			;;
+			*) 
+				echo "Sorry, wrong usage try again or ezproofc -h!"
+				exit 1;
+			;;				
+		esac
+	done	
+else
+	echo "Please provide a C program to verify - ezproofc <file.c> or usage ezproofc -h"
+fi
+
+#===========================================================
+#==> Apply options
+if [ ${received_h} ]
+then
+			clear
+			echo ""
+			echo "-----------------------------  EZPROOFC v3 ---------------------------"
+			echo "======================================================================"
+			echo "		  .-."
+			echo "		  /v\\"
+			echo "		 // \\\\    > L I N U X - GPL<"
+			echo "		/(   )\\"
+			echo "		 ^^-^^"
+			echo "======================================================================"
+			echo "----------------------------------------------------------------------"
+			echo "Usage:                    Purpose:"
+			echo ""
+			echo "ezproofc [-h]             Show help"						
+			echo "______________________________________________________________________"
+			echo "ezproofc file.c           Source file - Default: Apply verification"
+			echo "                          for all claims, adopting the following ESBMC"
+			echo "                          options:"			
+			echo " $ esbmc --arch --no-library --claim <n> --unwind <bound> <\$file.c>"						
+			echo " Warning: Bounds for verification Timeout = 3600s and UpperBound = 100"
+			echo "______________________________________________________________________"
+			echo "Additonal options:"
+			echo ""
+			echo "ezproofc [-e] <file.c> <counterexample_file.tmp> "
+			echo "          -> Apply EZProofC in the counterexample based on the code"	
+			echo " WARNING: Program C should be already preprocessed!!"					
+			echo ""
+			echo "ezproofc [-e] <file.c> <counterexample_file.tmp> --addassert"
+			echo "          -> Apply EZProofC in the counterexample based on the code"						
+			echo "          -> And to apply an assertion using the violated property"	
+			echo " WARNING: Program C should be already preprocessed!!"										
+			echo ""
+			echo "ezproofc [-p] <file.c>"
+			echo "          -> Apply preprocessing code"
+			echo ""
+			echo "ezproofc [-c]"
+			echo "          -> Clean old results"
+			echo "----------------------------------------------------------------------"
+			echo "======================================================================"
+			exit 1;
+elif [ ${received_e} ]
+then	
+	run_ezproofc_with_CE $arg_1 $arg_2 $arg_3
+	exit 1; #finsh here
+elif [ ${received_p} ]
+then	
+	run_uncrustify_pre $arg_1
+	exit 1; #finsh here
+elif [ ${received_c} ]
+then		
+	echo "Do you want to clean all folders (old results)? Type y (yes) or n (No), followed by [ENTER]:"
+	read choose
+	if [ $choose = "y" ];
+	then
+		echo "> Cleaning all old results folders..."
+		clean_old
+		echo "> Status: OKAY"
+	fi
+	exit 1; #finsh here
+else
+	clear
+	run_ezproofc_check_ALL $1
+	exit 1; #finsh here	
+fi
+
+#-----------------------------end main ------------------------------
+#====================================================================
+
