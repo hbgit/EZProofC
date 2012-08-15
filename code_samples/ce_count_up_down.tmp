@@ -1,0 +1,252 @@
+
+*** Generating Base Case ***
+file count_up_down.c: Parsing
+Converting
+Type-checking count_up_down
+Generating GOTO Program
+Pointer Analysis
+Adding Pointer Checks
+
+*** Generating Forward Condition ***
+file count_up_down.c: Parsing
+Converting
+Type-checking count_up_down
+Generating GOTO Program
+Pointer Analysis
+Adding Pointer Checks
+
+*** Generating Inductive Step ***
+file count_up_down.c: Parsing
+Converting
+Type-checking count_up_down
+Generating GOTO Program
+Pointer Analysis
+Adding Pointer Checks
+
+*** K-Induction Loop Iteration 1 ***
+*** Checking base case 
+Starting Bounded Model Checking
+Unwinding loop 0 iteration 1 file count_up_down.c line 8 function main
+size of program expression: 22 assignments
+Generated 1 VCC(s), 1 remaining after simplification
+Encoding remaining VCC(s) using integer/real arithmetic
+Solving with SMT Solver Z3 v3.2
+Runtime decision procedure: 0.002s
+No bug has been found in the base case
+
+*** K-Induction Loop Iteration 2 ***
+*** Checking forward condition 
+Starting Bounded Model Checking
+Unwinding loop 0 iteration 1 file count_up_down.c line 8 function main
+Unwinding loop 0 iteration 2 file count_up_down.c line 8 function main
+size of program expression: 26 assignments
+Generated 2 VCC(s), 2 remaining after simplification
+Encoding remaining VCC(s) using integer/real arithmetic
+Solving with SMT Solver Z3 v3.2
+Runtime decision procedure: 0.002s
+The forward condition is unable to prove the property
+
+*** K-Induction Loop Iteration 2 ***
+*** Checking inductive step 
+Starting Bounded Model Checking
+Unwinding loop 0 iteration 1 file count_up_down.c line 8 function main
+Unwinding loop 0 iteration 2 file count_up_down.c line 8 function main
+size of program expression: 46 assignments
+Generated 1 VCC(s), 1 remaining after simplification
+Encoding remaining VCC(s) using integer/real arithmetic
+Solving with SMT Solver Z3 v3.2
+Runtime decision procedure: 0.004s
+Building error trace
+
+Counterexample:
+
+State 1 file library/pthread_lib.c line 29 thread 0
+----------------------------------------------------
+  pthread_lib::num_total_threads=0 (00000000000000000000000000000000)
+
+State 2 file library/pthread_lib.c line 30 thread 0
+----------------------------------------------------
+  pthread_lib::num_threads_running=0 (00000000000000000000000000000000)
+
+State 3 file <built-in> line 12 thread 0
+----------------------------------------------------
+  __ESBMC_alloc={ FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE }
+
+State 4 file <built-in> line 13 thread 0
+----------------------------------------------------
+  __ESBMC_deallocated={ FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE }
+
+State 5 file <built-in> line 14 thread 0
+----------------------------------------------------
+  __ESBMC_is_dynamic={ FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE }
+
+State 6 file <built-in> line 15 thread 0
+----------------------------------------------------
+  __ESBMC_alloc_size={ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+
+State 7 file <built-in> line 21 thread 0
+----------------------------------------------------
+  __ESBMC_rounding_mode=0 (00000000000000000000000000000000)
+
+State 8 file library/pthread_lib.c line 41 function pthread_start_main_hook thread 0
+c::pthread_start_main_hook at  line 
+----------------------------------------------------
+  pthread_lib::num_total_threads=1 (00000000000000000000000000000001)
+
+State 9 file library/pthread_lib.c line 43 function pthread_start_main_hook thread 0
+c::pthread_start_main_hook at  line 
+----------------------------------------------------
+  pthread_lib::num_threads_running=1 (00000000000000000000000000000001)
+
+State 10 file count_up_down.c line 5 function main thread 0
+<main invocation>
+----------------------------------------------------
+  c::main::$tmp::return_value_nondet_uint$1=0 (00000000000000000000000000000000)
+
+State 11 file count_up_down.c line 5 function main thread 0
+<main invocation>
+----------------------------------------------------
+  count_up_down::main::1::n=0 (00000000000000000000000000000000)
+
+State 12 file count_up_down.c line 6 function main thread 0
+<main invocation>
+----------------------------------------------------
+  count_up_down::main::1::x=0 (00000000000000000000000000000000)
+
+State 13 file count_up_down.c line 6 function main thread 0
+<main invocation>
+----------------------------------------------------
+  count_up_down::main::1::y=0 (00000000000000000000000000000000)
+
+State 14  thread 0
+<main invocation>
+----------------------------------------------------
+  count_up_down::main::1::x=2 (00000000000000000000000000000010)
+
+State 15  thread 0
+<main invocation>
+----------------------------------------------------
+  cs$1={ .c::count_up_down::main::1::n=1, .c::main::$tmp::return_value_nondet_uint$1=5, .c::count_up_down::main::1::x=5,
+    .c::count_up_down::main::1::y=5 }
+
+State 16  thread 0
+<main invocation>
+----------------------------------------------------
+  cs$1={ .c::count_up_down::main::1::n=1, .c::main::$tmp::return_value_nondet_uint$1=1, .c::count_up_down::main::1::x=5,
+    .c::count_up_down::main::1::y=5 }
+
+State 17  thread 0
+<main invocation>
+----------------------------------------------------
+  cs$1={ .c::count_up_down::main::1::n=1, .c::main::$tmp::return_value_nondet_uint$1=1, .c::count_up_down::main::1::x=2,
+    .c::count_up_down::main::1::y=5 }
+
+State 18  thread 0
+<main invocation>
+----------------------------------------------------
+  cs$1={ .c::count_up_down::main::1::n=1, .c::main::$tmp::return_value_nondet_uint$1=1, .c::count_up_down::main::1::x=2,
+    .c::count_up_down::main::1::y=0 }
+
+State 19  thread 0
+<main invocation>
+----------------------------------------------------
+  kindice$1=0 (00000000000000000000000000000000)
+
+State 20  thread 0
+<main invocation>
+----------------------------------------------------
+  s$1={ { .c::count_up_down::main::1::n=1, .c::main::$tmp::return_value_nondet_uint$1=1, .c::count_up_down::main::1::x=2,
+    .c::count_up_down::main::1::y=0 } }
+
+State 21 file count_up_down.c line 10 function main thread 0
+<main invocation>
+----------------------------------------------------
+  count_up_down::main::1::x=1 (00000000000000000000000000000001)
+
+State 22 file count_up_down.c line 11 function main thread 0
+<main invocation>
+----------------------------------------------------
+  count_up_down::main::1::y=1 (00000000000000000000000000000001)
+
+State 23  thread 0
+<main invocation>
+----------------------------------------------------
+  cs$1={ .c::count_up_down::main::1::n=0, .c::main::$tmp::return_value_nondet_uint$1=1, .c::count_up_down::main::1::x=2,
+    .c::count_up_down::main::1::y=0 }
+
+State 24  thread 0
+<main invocation>
+----------------------------------------------------
+  cs$1={ .c::count_up_down::main::1::n=0, .c::main::$tmp::return_value_nondet_uint$1=0, .c::count_up_down::main::1::x=2,
+    .c::count_up_down::main::1::y=0 }
+
+State 25  thread 0
+<main invocation>
+----------------------------------------------------
+  cs$1={ .c::count_up_down::main::1::n=0, .c::main::$tmp::return_value_nondet_uint$1=0, .c::count_up_down::main::1::x=1,
+    .c::count_up_down::main::1::y=0 }
+
+State 26  thread 0
+<main invocation>
+----------------------------------------------------
+  cs$1={ .c::count_up_down::main::1::n=0, .c::main::$tmp::return_value_nondet_uint$1=0, .c::count_up_down::main::1::x=1,
+    .c::count_up_down::main::1::y=1 }
+
+State 28  thread 0
+<main invocation>
+----------------------------------------------------
+  kindice$1=1 (00000000000000000000000000000001)
+
+State 29  thread 0
+<main invocation>
+----------------------------------------------------
+  s$1={ { .c::count_up_down::main::1::n=1, .c::main::$tmp::return_value_nondet_uint$1=1, .c::count_up_down::main::1::x=2,
+    .c::count_up_down::main::1::y=0 }, 
+    { .c::count_up_down::main::1::n=0, .c::main::$tmp::return_value_nondet_uint$1=0, .c::count_up_down::main::1::x=1,
+    .c::count_up_down::main::1::y=1 } }
+
+State 30 file count_up_down.c line 10 function main thread 0
+<main invocation>
+----------------------------------------------------
+  count_up_down::main::1::x=0 (00000000000000000000000000000000)
+
+State 31 file count_up_down.c line 11 function main thread 0
+<main invocation>
+----------------------------------------------------
+  count_up_down::main::1::y=2 (00000000000000000000000000000010)
+
+State 32  thread 0
+<main invocation>
+----------------------------------------------------
+  cs$1={ .c::count_up_down::main::1::n=0, .c::main::$tmp::return_value_nondet_uint$1=0, .c::count_up_down::main::1::x=1,
+    .c::count_up_down::main::1::y=1 }
+
+State 33  thread 0
+<main invocation>
+----------------------------------------------------
+  cs$1={ .c::count_up_down::main::1::n=0, .c::main::$tmp::return_value_nondet_uint$1=0, .c::count_up_down::main::1::x=1,
+    .c::count_up_down::main::1::y=1 }
+
+State 34  thread 0
+<main invocation>
+----------------------------------------------------
+  cs$1={ .c::count_up_down::main::1::n=0, .c::main::$tmp::return_value_nondet_uint$1=0, .c::count_up_down::main::1::x=0,
+    .c::count_up_down::main::1::y=1 }
+
+State 35  thread 0
+<main invocation>
+----------------------------------------------------
+  cs$1={ .c::count_up_down::main::1::n=0, .c::main::$tmp::return_value_nondet_uint$1=0, .c::count_up_down::main::1::x=0,
+    .c::count_up_down::main::1::y=2 }
+
+State 37  thread 0
+<main invocation>
+----------------------------------------------------
+  kindice$1=2 (00000000000000000000000000000010)
+
+Violated property:
+  file count_up_down.c line 13 function main
+  assertion
+  y == n
+
+VERIFICATION FAILED

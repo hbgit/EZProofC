@@ -1,16 +1,16 @@
 #!/usr/bin/env perl
 
-#processamento auxiliar de texto
-#para declaração de variavel e inicialização simulateneo composto
-#ex base: unsigned long int id_ch = 0, j, z = func(a,b,c);
-#OBS: falta criar validação para quando não houver declaração composta do arquivo
-#STATUS: NO OKAY
+# Processamento auxiliar de texto
+# para declaração de variavel e inicialização simulateneo composto
+# ex base: unsigned long int id_ch = 0, j, z = func(a,b,c);
+# OBS: falta criar validação para quando não houver declaração composta do arquivo
+# STATUS: ON DEV
 
 #validando entrada do arquivo
 
 if($#ARGV != 0 ){
-print "Sorry, you need a file.c -> ./aux_formatation <file.c> \n";
-exit;
+	print "Sorry, you need a file.c -> ./aux_formatation <file.c> \n";
+	exit;
 }
 
 $pathfile = $ARGV[0];
@@ -25,8 +25,7 @@ while (<ENTRADA>) { # atribui à variável $_ uma linha de cada vez
 close ENTRADA;
 
 #aplicando alterações e reescrevendo arquivo
-#abrindo o novo code C para escrever e inserir a assertiva
-open(NEW_FILEC , ">$pathfile") or die "Nao foi possivel abrir o novo arquivo.c: $!";
+#open(NEW_FILEC , ">$pathfile") or die "Nao foi possivel abrir o novo arquivo.c: $!";
 
 $size_linhas_file = @LinhasFile;
 
@@ -36,18 +35,24 @@ for($i=0;$i < $size_linhas_file; $i++){
 	@list_func;
 	$cont_func = 0;
 	$mont_type = "";
+	$flag_commet = 1;
 	
 	#buscando declaração de variavel e inicialização simulateneo composto
 	#o padrão para identificar se é uma declaração multipla se seguir o modelo ex. int a, b;
 	#ou seja a declaração do tipo e o ponto e virgula no final.
 	
-	#OBS: ainda falta tratar para exs. //unsigned long int id_ch = 2,3, j, z = func(y);
-	#OBS: tratar para ele pular as linhas que iniciarem comentário
+	#OBS: ainda falta tratar para ex. unsigned long int id_ch = 2,3, j, z = func(y);
+	#Tratar para ele pular as linhas que iniciarem comentário
+	if($LinhasFile[$i] =~ m/\//g){				
+		$flag_commet = 0;
+	}else{
+		$flag_commet = 1;
+	}
 	
 	
 	#1º identificando se é declarado o tipo
 	#aqui supeitamos que é uma variavel
-	if($LinhasFile[$i] =~ m/int|char|float|double|unsigned|long|short/){
+	if($LinhasFile[$i] =~ m/int|char|float|double|unsigned|long|short/ and $flag_commet == 1){
 		
 		#verificando se não é expressão tipo for, while, if
 		#removendo os espaços da linha para a proxima verificação
@@ -111,7 +116,8 @@ for($i=0;$i < $size_linhas_file; $i++){
 						$cont_subs++;
 					}
 					
-					print NEW_FILEC $rec_mont_line;
+					#print NEW_FILEC $rec_mont_line;
+					print $rec_mont_line;
 					
 					#$LinhasFile[$i] = $rec_mont_line;
 					$i++;
@@ -120,7 +126,8 @@ for($i=0;$i < $size_linhas_file; $i++){
 				
 				}else{
 					@list_split = split(/,/,$LinhasFile[$i]);										
-					print NEW_FILEC mont_line(@list_split);
+					#print NEW_FILEC mont_line(@list_split);
+					print mont_line(@list_split);
 					#$LinhasFile[$i] = $rec_mont_line;
 					$i++;
 					@list_split = ();
@@ -135,11 +142,12 @@ for($i=0;$i < $size_linhas_file; $i++){
 	}
 	$rec_string = "";	
 	$mont_new_txt = "";	
-	print NEW_FILEC $LinhasFile[$i];
+	#print NEW_FILEC $LinhasFile[$i];
+	print $LinhasFile[$i];
 }
 
 #*** Close the file ***
-close(NEW_FILEC);
+#close(NEW_FILEC);
 
 
 #função de montagem da linha com \n
@@ -169,13 +177,3 @@ for($cont_split = 0; $cont_split < $size_split; $cont_split++){
 return $mont_new_txt;
 
 }
-
-	
-
-#foreach(@list_func){
-#		print $_."\n";
-#}
-
-
-
-

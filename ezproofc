@@ -183,6 +183,9 @@ run_ezproofc_with_CE(){
 #./uncrustify -q -l C -c ben.cfg -f ../ccode_here/testCode.c
 exec_processadorc()
 {	
+	file_tmp="file_tmp.tmp"
+	file2_tmp="2file_tmp.tmp"
+	
 	#verifying if there is a directory in the path' code	
 	name_program=$(echo $1 | grep -o "[^/]*$")	
 	rec_file="pre_$name_program"
@@ -192,7 +195,17 @@ exec_processadorc()
 	FILE_PREPROCESSOR=$rec_path
 	
 	#Apply preprocessor	
-	$DIR_PROC_PRIMARY -q -l C -c $CONFIG_CFG -f $1 > $rec_path		
+	$DIR_PROC_PRIMARY -q -l C -c $CONFIG_CFG -f $1 > $file_tmp	
+	
+	#Apply aux preprocessor
+	$DIR_PROC_AUX $file_tmp > $file2_tmp
+	
+	#Re-apply preprocessor	
+	$DIR_PROC_PRIMARY -q -l C -c $CONFIG_CFG -f $file2_tmp > $rec_path
+	
+	rm $file_tmp
+	rm $file2_tmp
+	
 }
 
 
@@ -291,8 +304,16 @@ inc_now_instrument()
 }
 
 run_uncrustify_pre(){
+	tmp_file="file_tmp.tmp"
+	tmp_file2="2file_tmp.tmp"
 	#Apply preprocessor	
-	$DIR_PROC_PRIMARY -q -l C -c $CONFIG_CFG -f $1
+	$DIR_PROC_PRIMARY -q -l C -c $CONFIG_CFG -f $1 > $tmp_file
+	#Apply aux preprocessor
+	$DIR_PROC_AUX $tmp_file > $tmp_file2
+	#Re-apply preprocessor	
+	$DIR_PROC_PRIMARY -q -l C -c $CONFIG_CFG -f $tmp_file2
+	rm $tmp_file
+	rm $tmp_file2
 }
 
 clean_old(){
