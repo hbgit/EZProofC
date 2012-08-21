@@ -60,7 +60,7 @@ After that, you should type the following command:
 
 $ tar -xzvf EZProofC_vx.tar.gz
 
-The FORTES distribution is split into directories and files:
+The EZProofC distribution is split into directories and files:
 
 - code_samples (Samples codes to apply EZProofC) 
 - modules
@@ -73,7 +73,7 @@ The FORTES distribution is split into directories and files:
 
 >> STEP 2:
 
-Open the directory where the EZProofC tool was extracted and then you should locate the config.sh and fortes script. After that, you should run the config.sh script, it is worth to say that you should run the config.sh script from inside the directory where EZProofC was extracted.
+Open the directory where the EZProofC tool was extracted and then you should locate the config.sh and ezproofc script. After that, you should run the config.sh script, it is worth to say that you should run the config.sh script from inside the directory where EZProofC was extracted.
 
 Example:
 
