@@ -41,6 +41,18 @@ then
 	cat modules/instanciation/out.tmp > modules/instanciation/go_insert_property.pl
 	chmod +x modules/instanciation/go_insert_property.pl
 	rm modules/instanciation/out.tmp
+	# ------> write abs_CE_to_assume.pl
+	cat modules/instanciation/abs_CE_to_assume.pl | sed -e "s/ABS_PATH_EZPROOFC=\"\[<??>\]\"/ABS_PATH_EZPROOFC=\"$tr1\"/g" > modules/instanciation/out.tmp
+	rm modules/instanciation/abs_CE_to_assume.pl
+	cat modules/instanciation/out.tmp > modules/instanciation/abs_CE_to_assume.pl
+	chmod +x modules/instanciation/abs_CE_to_assume.pl
+	rm modules/instanciation/out.tmp
+	# ------> write go_instrument_simple_wrt.pl
+	cat modules/instanciation/go_instrument_simple_wrt.pl | sed -e "s/ABS_PATH_EZPROOFC=\"\[<??>\]\"/ABS_PATH_EZPROOFC=\"$tr1\"/g" > modules/instanciation/out.tmp
+	rm modules/instanciation/go_instrument_simple_wrt.pl
+	cat modules/instanciation/out.tmp > modules/instanciation/go_instrument_simple_wrt.pl
+	chmod +x modules/instanciation/go_instrument_simple_wrt.pl
+	rm modules/instanciation/out.tmp
 	# ------> write checkAllClaims.sh
 	cat modules/verification/checkAllClaims.sh | sed -e "s/ABS_PATH_EZPROOFC=\"\[<??>\]\"/ABS_PATH_EZPROOFC=\"$tr1\"/g" > modules/verification/out.tmp
 	rm modules/verification/checkAllClaims.sh

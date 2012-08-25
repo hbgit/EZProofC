@@ -11,7 +11,7 @@
 #			Checkers
 #
 # Author: Herbert O. Rocha - E-mail: herberthb12@gmail.com
-# Version: 3 - Year: 2012
+# Version: 4 - Year: 2012
 # License: GPL
 #---------------------------------------------------------------------
 
@@ -54,6 +54,8 @@ DIR_RESULT_ABS=$DIR_ABS_AND_INST"result_abstration.dir"
 PATH_ABS_P_DIR=$DIR_ABS_AND_INST"result_abs_property.p"
 PROG_ABSTRATION=$DIR_ABS_AND_INST"abs_CE_v10_IN.pl"
 PROG_INSTRUMENT=$DIR_ABS_AND_INST"go_instrument_v2_IN.pl"
+PROG_ABSTRATION_ASSUME=$DIR_ABS_AND_INST"abs_CE_to_assume.pl"
+PROG_SIMPLE_WRT=$DIR_ABS_AND_INST"go_instrument_simple_wrt.pl"
 PROG_INSERT_PROPERTY=$DIR_ABS_AND_INST"go_insert_property.pl"
 
 # For Verification
@@ -118,6 +120,7 @@ run_ezproofc_with_CE(){
 		then
 			# Check $3 option
 			chk_op3=`echo $3 | grep -c "addassert"`
+			chk_op_assume=`echo $3 | grep -c "nassume"`
 			if [ $chk_op3 -eq 1 ];
 			then
 				# Using option --addassert		
@@ -142,8 +145,30 @@ run_ezproofc_with_CE(){
 				if [ -d "$PATH_ABS_P_DIR" ]; then					
 					rm -r $PATH_ABS_P_DIR
 				fi
-			
-								
+			elif [ $chk_op_assume -eq 1 ]
+			then							
+				# Using option --assume		
+				$PROG_ABSTRATION_ASSUME $1 $2								
+				$PROG_SIMPLE_WRT $1 $DIR_RESULT_ABS				
+				
+				#get name for new code								
+				CE_name=`echo $2 | grep -o "[^\/]*$" | grep -o "^[^.]*"`			
+				#echo $CE_name
+				new_name_file=`ls $DIR_RESULT_NEW_CODE"/"$CE_name"/"*.c`			
+							
+				#last pre-process
+				$DIR_PROC_PRIMARY -q -l C -c $CONFIG_CFG -f $new_name_file
+												
+				#remove temporary files				
+				if [ -d "$DIR_RESULT_NEW_CODE" ]; then									
+					rm -r $DIR_RESULT_NEW_CODE
+				fi
+				if [ -d "$DIR_RESULT_ABS" ]; then					
+					rm -r $DIR_RESULT_ABS
+				fi		
+				if [ -d "$PATH_ABS_P_DIR" ]; then					
+					rm -r $PATH_ABS_P_DIR
+				fi
 			else
 				echo "Sorry, no <$3> option found, check out ezproofc -h"
 			fi				
@@ -366,7 +391,7 @@ then
 			;;
 			c) 
 				received_c=1			
-			;;
+			;;			
 			*) 
 				echo "Sorry, wrong usage try again or ezproofc -h!"
 				exit 1;
@@ -411,6 +436,12 @@ then
 			echo "ezproofc [-e] <file.c> <counterexample_file.tmp> --addassert"
 			echo "          -> Apply EZProofC in the counterexample based on the code"						
 			echo "          -> And to apply an assertion using the violated property"	
+			echo " WARNING: Program C should be already preprocessed!!"										
+			echo ""
+			echo ">>> NEW"
+			echo "ezproofc [-e] <file.c> <counterexample_file.tmp> --nassume"
+			echo "          -> Apply EZProofC in the counterexample based on the code"						
+			echo "          -> and then it inserts an ESBMC assume that has been gathered"	
 			echo " WARNING: Program C should be already preprocessed!!"										
 			echo ""
 			echo "ezproofc [-p] <file.c>"
