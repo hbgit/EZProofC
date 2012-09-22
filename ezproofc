@@ -124,7 +124,8 @@ run_ezproofc_with_CE(){
 			if [ $chk_op3 -eq 1 ];
 			then
 				# Using option --addassert		
-				$PROG_ABSTRATION $1 $2 $3								
+				$PROG_ABSTRATION $1 $2 $3
+											
 				$PROG_INSTRUMENT $1 $DIR_RESULT_ABS
 				$PROG_INSERT_PROPERTY
 				
@@ -147,9 +148,11 @@ run_ezproofc_with_CE(){
 				fi
 			elif [ $chk_op_assume -eq 1 ]
 			then							
-				# Using option --assume		
-				$PROG_ABSTRATION_ASSUME $1 $2								
-				$PROG_SIMPLE_WRT $1 $DIR_RESULT_ABS				
+				# Using option --nassume [OKAY]		
+				$PROG_ABSTRATION_ASSUME $1 $2	
+												
+				$PROG_SIMPLE_WRT $1 $DIR_RESULT_ABS					
+				
 				
 				#get name for new code								
 				CE_name=`echo $2 | grep -o "[^\/]*$" | grep -o "^[^.]*"`			
@@ -473,6 +476,13 @@ then
 	exit 1; #finsh here
 else
 	clear
+	#check if the option was correct
+	if [ $# -gt 1 ];
+	then
+		echo "Sorry, wrong usage try again or ezproofc -h!"
+		exit 1
+	fi
+	
 	run_ezproofc_check_ALL $1
 	exit 1; #finsh here	
 fi

@@ -107,19 +107,40 @@ for ($i=$rec_i_postion_VP; $i <= $sizeLinhasFile; $i++) {
 }
 
 
+@tmp_lines_CE = ();
 #obtendo os dados referentes ao contraexemplo gerado
 for ($i=$rec_i_postion_CE; $i <= ($rec_i_postion_VP - 1); $i++) {		
 	
-	#for DYNAMIC PATTERN	
-	if(not($LinhasFile[$i] =~ m/(^[\--]+)/g) and not($LinhasFile[$i] =~ m/(^[<]+)/g) and not($LinhasFile[$i] =~ m/(^$)/g)){					
-		#print $i."IF \n";
-		#print $LinhasFile[$i];
-		push(@rec_Linhas_CE , $LinhasFile[$i]);
+	#for DYNAMIC PATTERN
+	#TODO: efetuar o tratamento para retorno de funções	
+	#regex c[::]+ to avoid references call function
+	#regex ^State.+ o check if the next line was removendo just contain the state
+	#and not($LinhasFile[$pat_state] =~ m/(^State.+)/g)	
+		
+	if( not($LinhasFile[$i] =~ m/(^[\--]+)/g) and not($LinhasFile[$i] =~ m/(^[<]+)/g) and not($LinhasFile[$i] =~ m/(^$)/g) and 
+	   not($LinhasFile[$i] =~ m/(return_)/g) and not($LinhasFile[$i] =~ m/(c[::]+)/g) ){					
+		
+		#print $LinhasFile[$i];		
+		push(@tmp_lines_CE , $LinhasFile[$i]);		
+	}							
+}
+
+
+#generate pattern to abstract KEEP going
+$size_tmp_lines_ce = @tmp_lines_CE;
+@rec_Linhas_CE  = ();
+
+for($tmp_cont=0;$tmp_cont<= $size_tmp_lines_ce; $tmp_cont++){	
+	
+	if(not($tmp_lines_CE[$tmp_cont+1] =~ m/(^State.+)/) and $tmp_lines_CE[$tmp_cont] =~ m/(^State.+)/ ){
+		#print "IF: ".$tmp_lines_CE[$tmp_cont];	
+		push(@rec_Linhas_CE , $tmp_lines_CE[$tmp_cont]);	
+		#print "IF: ".$tmp_lines_CE[$tmp_cont+1];
+		push(@rec_Linhas_CE , $tmp_lines_CE[$tmp_cont+1]);		
+		$tmp_cont = $tmp_cont + 1;
 	}
-	#else{
-		#print $i."ELSE \n";
-	#}
-						
+	
+	
 }
 
 

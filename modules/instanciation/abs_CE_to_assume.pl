@@ -5,8 +5,7 @@
 # Objetivo: Ler os resultados obtidos na verificação do model checker
 #	abstrair os dados referentes: Linha no código, Variavel e valor.
 #	E instrumentar os mesmo em uma novas instancia do código.
-# Status: ON DEV
-# NOTE: Alterar a partir da linha 288, verificar se o assume será inserido antes ou depois da VAR??
+# Status: OKAY
 # Usage way: ./abs code.c file.c ce_file.tmp [--addassert]
 #------------------------------------------------------------------
 
@@ -107,18 +106,37 @@ for ($i=$rec_i_postion_VP; $i <= $sizeLinhasFile; $i++) {
 	push(@rec_Linhas_VP,$LinhasFile[$i]);				
 }
 
-
+@tmp_lines_CE = ();
 #obtendo os dados referentes ao contraexemplo gerado
 for ($i=$rec_i_postion_CE; $i <= ($rec_i_postion_VP - 1); $i++) {		
 	
 	#for DYNAMIC PATTERN
 	#TODO: efetuar o tratamento para retorno de funções	
-	if(not($LinhasFile[$i] =~ m/(^[\--]+)/g) and not($LinhasFile[$i] =~ m/(^[<]+)/g) and not($LinhasFile[$i] =~ m/(^$)/g) and not($LinhasFile[$i] =~ m/(return_)/g)){					
-		#print $i."IF \n";
-		#print $LinhasFile[$i];
-		push(@rec_Linhas_CE , $LinhasFile[$i]);
+	#regex c[::]+ to avoid references call function
+	#regex ^State.+ o check if the next line was removendo just contain the state
+	#and not($LinhasFile[$pat_state] =~ m/(^State.+)/g)	
+		
+	if( not($LinhasFile[$i] =~ m/(^[\--]+)/g) and not($LinhasFile[$i] =~ m/(^[<]+)/g) and not($LinhasFile[$i] =~ m/(^$)/g) and 
+	   not($LinhasFile[$i] =~ m/(return_)/g) and not($LinhasFile[$i] =~ m/(c[::]+)/g) ){					
+		
+		#print $LinhasFile[$i];		
+		push(@tmp_lines_CE , $LinhasFile[$i]);
+		
 	}	
 						
+}
+
+#generate pattern to abstract KEEP going
+$size_tmp_lines_ce = @tmp_lines_CE;
+for($tmp_cont=0;$tmp_cont<= $size_tmp_lines_ce; $tmp_cont++){	
+	
+	if( $tmp_lines_CE[$tmp_cont] =~ m/(^State.+)/g and not($tmp_lines_CE[$tmp_cont+1] =~ m/(^State.+)/) ){
+		#print $tmp_lines_CE[$tmp_cont];	
+		push(@rec_Linhas_CE , $tmp_lines_CE[$tmp_cont]);	
+		#print $tmp_lines_CE[$tmp_cont+1];
+		push(@rec_Linhas_CE , $tmp_lines_CE[$tmp_cont+1]);	
+		$tmp_cont = $tmp_cont + 1;		
+	}	
 }
 
 
@@ -129,7 +147,7 @@ for($cont=0;$cont <= $size_rec_Linhas_CE; $cont++){
 	
 	#obtem a string "line n", o n é o numero da linha
 	if($rec_Linhas_CE[$cont] =~ /(line.[0-9]*)/){
-		
+		#print $1."\n";
 		#obtem o número na linha
 		if($1 =~ /([0-9]*$)/){
 		   #Line do CE		   
@@ -156,7 +174,7 @@ for($cont=0;$cont <= $size_rec_Linhas_CE; $cont++){
 			#----------------------------------------------------------------------------------
 			if($rec_Linhas_CE[$nextLine] =~ /(\w[^:]*=.[^\(\)]*)/){			
 				
-				$rec_1 = $1;						
+				$rec_1 = $1;				
 				if($rec_1 =~ /(^.[^=]*)/){
 					
 					#Criando escapes para simbolos como [], para poder aplicar regex depois para validação					
@@ -172,13 +190,13 @@ for($cont=0;$cont <= $size_rec_Linhas_CE; $cont++){
 					}							
 					
 					#VAR do CE
-					$rec_var_CE = $1;
+					$rec_var_CE = $1;					
 				}						
 				if($rec_1 =~ /(=.*)/){
 					$rec_temp_valor = $1;							
 					if($rec_temp_valor =~ /([^=].*)/){
 						#Value do CE
-						$rec_value_CE = $1;								
+						$rec_value_CE = $1;													
 					}
 				}
 			}
@@ -187,7 +205,7 @@ for($cont=0;$cont <= $size_rec_Linhas_CE; $cont++){
 			#para a coleta de dados. Pois para a captura dos valores foi definido que
 			#a proxima apos a linha analisada deve conter o nome do arquivo no linha, deste modo
 			#isolando as outras linhas que não contem o que foi especificado
-			###print $rec_number_line." | ".$rec_var_CE." | ".$rec_value_CE."\n";	
+			#print $rec_number_line." | ".$rec_var_CE." | ".$rec_value_CE."\n";	
 								
 			savelist($rec_number_line,$rec_var_CE,$rec_value_CE);	
 				
@@ -311,41 +329,50 @@ sub savelist{
 #função que gera as linhas já com os valores intrumentados
 #===================================================================
 sub geraLista{
-	$count_data = 0;	
-		
-	#Identifica as linhas sem duplicadas
-	my %unique = ();
-	foreach my $item (@number_lines)
-	{
-		$unique{$item} ++;
-	}
-	my @myunique = keys %unique;
+	$count_data = 0;				
 	
-	@num_lines = sort { $a <=> $b } @myunique;
-	
+	#Identifica as linhas duplicadas
+	@aux_num_tmp=();
+	foreach(@number_lines){
+		if(not($_ ~~ @aux_num_tmp)){
+			#print $_."\n";
+			push(@aux_num_tmp, $_);
+			
+		}
+	}	
+			
 	#verifica se a valores para a mesma linha		
 	$count_igual=0;
 	$mount_line="";
-	foreach(@num_lines){
+	
+	foreach(@aux_num_tmp){
 		$tmp = $_;		
 		$mount_line = $tmp+1; #pois o assume será colocado na proxima linha identificado pelo CE
-		foreach(@number_lines){			
-			if($tmp == $_){
+		
+		foreach(@number_lines){								
+			
+			if($tmp == $_){				
 				$count_igual = $count_igual + 1;					
 				if($count_igual == 1){
-					$mount_line = $mount_line."| __ESBMC_assume( ".$v_var_CE[$count_data]."!=".$v_value_CE[$count_data];					
-				}else{
-					$count_data = $count_data + 1;
-					$mount_line = $mount_line."&& ".$v_var_CE[$count_data]."!=".$v_value_CE[$count_data];					
-				}				
-			}			
-		}
+					$mount_line = $mount_line."| __ESBMC_assume( ".$v_var_CE[$count_data]."!=".$v_value_CE[$count_data];										
+				}else{										
+					$mount_line = $mount_line."&& ".$v_var_CE[$count_data]."!=".$v_value_CE[$count_data];															
+				}		
+								
+			}
+			
+			$count_data = $count_data + 1;
+						
+		}		
+		
 		$mount_line = $mount_line."); // by EZProofC\n";
 		print RESULTABS $mount_line;
+		#print $mount_line;
 		###print $mount_line;
 		$mount_line="";
 		$count_igual=0;
-		$count_data = $count_data + 1;
+		$count_data=0;
+		
 	}
 	
 	
