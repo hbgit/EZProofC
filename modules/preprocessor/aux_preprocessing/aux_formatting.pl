@@ -1,12 +1,15 @@
 #!/usr/bin/env perl
 
-# Processamento auxiliar de texto
-# para declaração de variavel e inicialização simulateneo composto
-# ex base: unsigned long int id_ch = 0, j, z = func(a,b,c);
-# OBS: falta criar validação para quando não houver declaração composta do arquivo
-# STATUS: ON DEV
+# -------------------------------------------------------------------
+# GOAL: Splits a single-line multi-variable declarations into multiple 
+# lines, with a separate variable declaration on each line.
+# Works with these patterns:
+#		int a,b; and int q, *p, k=3;
+# DOES NOT WORK with these patterns:
+#		int r,yu[2]={1,2}; and b = f(2,1); and p=&a, b = 3;
 
-#validando entrada do arquivo
+# [TODO] coma in the end of the line
+# -------------------------------------------------------------------
 
 if($#ARGV != 0 ){
 	print "Sorry, you need a file.c -> ./aux_formatation <file.c> \n";
@@ -15,165 +18,205 @@ if($#ARGV != 0 ){
 
 $pathfile = $ARGV[0];
 
-#lendo cada arquivo.c já pre-processado
-open(ENTRADA , "<$pathfile") or die "Nao foi possivel abrir o arquivo.c para leitura: $!";
-
-while (<ENTRADA>) { # atribui à variável $_ uma linha de cada vez
-	push(@LinhasFile,$_);
+open(ENTRADA , "<$pathfile") or die "Could not possible open the file: $!";
+while (<ENTRADA>) { 
+	push(@LineFile,$_);
 }
-	
 close ENTRADA;
 
-#aplicando alterações e reescrevendo arquivo
-#open(NEW_FILEC , ">$pathfile") or die "Nao foi possivel abrir o novo arquivo.c: $!";
-
-$size_linhas_file = @LinhasFile;
-
-for($i=0;$i < $size_linhas_file; $i++){
+for($count_i=0; $count_i <= $#LineFile; $count_i++){
 	
-	#lista para armazenar os resultados de função
-	@list_func;
-	$cont_func = 0;
-	$mont_type = "";
-	$flag_commet = 1;
-	
-	#buscando declaração de variavel e inicialização simulateneo composto
-	#o padrão para identificar se é uma declaração multipla se seguir o modelo ex. int a, b;
-	#ou seja a declaração do tipo e o ponto e virgula no final.
-	
-	#OBS: ainda falta tratar para ex. unsigned long int id_ch = 2,3, j, z = func(y);
-	#Tratar para ele pular as linhas que iniciarem comentário
-	if($LinhasFile[$i] =~ m/\//g){				
-		$flag_commet = 0;
-	}else{
-		$flag_commet = 1;
-	}
-	
-	
-	#1º identificando se é declarado o tipo
-	#aqui supeitamos que é uma variavel
-	if($LinhasFile[$i] =~ m/int|char|float|double|unsigned|long|short/ and $flag_commet == 1){
-		
-		#verificando se não é expressão tipo for, while, if
-		#removendo os espaços da linha para a proxima verificação
-		while($LinhasFile[$i] =~ m/([^[:blank:]])/g){
-			$rec_string = $rec_string.$1;
-		}
+	#skip blank lines, lines that starts with delimiters { or }, # macros
+	# and lines starts with comments
+	if(not($LineFile[$count_i] =~ m/^[{}]+/) and not($LineFile[$count_i] =~ m/^$/)
+	   and not($LineFile[$count_i] =~ m/^#/) and not($LineFile[$count_i] =~ m/^\//)){		
 			
-		#checando o ultimo simbolo no final da linha
-		 if($rec_string =~ m/(.$)/){
-			
-			
-		    if($1 eq ";"){
-			
-			#agora sabemos que é a declaração de uma variavel fora de uma estrutura tipo for, while, if
-			
-			#verificando se existe mais de 1 variavel sendo declarada
-			#contador de variaveis declaradas
-			$cont_var_dec = 0;
-			while($rec_string =~ m/(,)/g){
-				$cont_var_dec++;
-			}
-			
-			#print $cont_var_dec."\n";
-			
-			
-			if($cont_var_dec >= 1){
-				#agora sabemos que é uma declaração composta
-				#obtendo o tipo das variaveis
-				while($LinhasFile[$i] =~ m/(int|char|float|double|unsigned|long|short)/g){
-					$mont_type = $mont_type." ".$1;
-				}
-							
-				#verificando se alguma das variaveis e inicializada com uma função ou expressão
-				#working with ex. z = func(a,b,c)
-			
-				#falta tratar para exs. como:
-				# -> a = 2(a-b) | a = 2(a-2,3) | a = 2,3 | a={1,2}
-			
-				if($LinhasFile[$i] =~ /[\(\)]/){
-				
-					#obter o conteudo o parenteses e seu conteudo
-					while($LinhasFile[$i] =~ m/(\(.[^\(\)]*\))/g){
-					
-						$list_func[$cont_func] = $1;
-						$cont_func++;						
-					
-						#subs
-						#variavel de marcação
-						$y = " @";
-						$LinhasFile[$i] =~ s/\(.[^\(\)]*\)/$y/;																	
-							
-					}
-					@list_split = split(/,/,$LinhasFile[$i]);										
-					$rec_mont_line = mont_line(@list_split);
-					
-					#agora trocando os @s pelos seus respectivos valores
-					$cont_subs = 0;
-					
-					while($rec_mont_line =~ m/(@)/g){
-						$rec_mont_line =~ s/@/$list_func[$cont_subs]/;
-						$cont_subs++;
-					}
-					
-					#print NEW_FILEC $rec_mont_line;
-					print $rec_mont_line;
-					
-					#$LinhasFile[$i] = $rec_mont_line;
-					$i++;
-					
-					@list_split = ();
-				
-				}else{
-					@list_split = split(/,/,$LinhasFile[$i]);										
-					#print NEW_FILEC mont_line(@list_split);
-					print mont_line(@list_split);
-					#$LinhasFile[$i] = $rec_mont_line;
-					$i++;
-					@list_split = ();
-				
-				}	
+			#removing blank space front of the line code
+			$LineFile[$count_i] =~ s/^[ ]+//;
+										
+			if(not($LineFile[$count_i] =~ m/^[\/]/) and is_a_comment($LineFile[$count_i]) == 1){
+				$LineFile[$count_i] = remove_comment_end_line($LineFile[$count_i]);
 			}			
+				
 			
-		}
-	  }
+			#Gathering lines that could be a possible multi-variable declarations			
+			if($LineFile[$count_i]  =~ m/[,]+/ and ($LineFile[$count_i]  =~ m/[;]+/ or $LineFile[$count_i]  =~ m/.[^ ,]+[ ]+[^ ,]+[,]/) #){
+			   and not($LineFile[$count_i]  =~ m/^.[^ ]*[ ]*\(/) and not($LineFile[$count_i]  =~ m/^[:]/)){		   		
+						
+					#if($LineFile[$count_i] =~ m/^.[^ ,]*[ ]+[-+]*=/){
+						#print ">>>".$LineFile[$count_i];
+					#}
+					#controle run times to preprocessing the actual line that has been analised
+					$CONTROL_RUN = 1;
+					
+					
+					my $flag_coma = 0;
+					if($LineFile[$count_i]  =~ m/,$/){
+						$flag_coma = 1;						
+						#print "OUT: ".$flag_coma." <-> ".$LineFile[$count_i];
+					}
+						
+					#my $flag_get_pattern = 0;
+					my $flag_tmp=0;
+					$TYPE = "";
+					while($CONTROL_RUN == 1){
+						
+						$flag_tmp = $CONTROL_RUN;
+						
+						if($flag_coma == 1 and not($LineFile[$count_i]  =~ m/[;]$/)){
+							$CONTROL_RUN = 1;								 
+						}else{
+							$CONTROL_RUN = 0;
+						}
+						
+						
+						######### RUN SPLITS
+					    #else if ((ret > maxFixed(k, l)) || (ret < minFixed(k, l)))
+						#DECLARATION and DECLARATION with ASSIGMENT										
+						if(not($LineFile[$count_i] =~ m/^.[^ ,]*[ ]+[-+]*=/) and 
+						   not($LineFile[$count_i] =~ m/[<>][ ]*.[^ ,]*[,]/) and $flag_tmp == 1){						
+							#print ">>>".$LineFile[$count_i];					
+														
+							$LineFile[$count_i] =~ m/(^.[^ =]+)[\s]+(.+)/;
+							
+							
+							#if($flag_get_pattern != 1){
+							$TYPE = $1;
+							#	$flag_get_pattern = 1;								
+							#}
+							
+							
+							
+							#print ">>>>>".$2."\n";																			
+							@rec_split_coma = split(/,/,$2);
+							
+							#HIP -> validar cada split
+							
+							for($count_c=0; $count_c <= $#rec_split_coma; $count_c++){
+								$tmp = $rec_split_coma[$count_c];
+								$tmp =~ s/^[\s]+//;
+								
+								if($tmp =~ m/[{]+/){
+									print $TYPE." ".$tmp;
+									$count_c++;
+									while(not($rec_split_coma[$count_c] =~ m/[}]+/)){
+										print ",".$rec_split_coma[$count_c];
+										$count_c++;
+									}
+									print ",".$rec_split_coma[$count_c]."\n";
+									
+								}
+								elsif($tmp =~ m/[\(]+/){
+									print $TYPE." ".$tmp;
+									$count_c++;
+									while(not($rec_split_coma[$count_c] =~ m/[\)]+/)){
+										print ",".$rec_split_coma[$count_c];
+										$count_c++;
+									}
+									print ",".$rec_split_coma[$count_c]."\n";
+								}
+								else{
+									if($tmp =~ m/[;]+/){
+										print $TYPE." ".$tmp."\n";
+									}else{
+										print $TYPE." ".$tmp.";\n";
+									}
+									
+								}
+								
+							}
+						}					
+						#ASSIGMENT
+						else{
+							#print ":::::".$LineFile[$count_i];
+							#Here it knows that we have a coma, now we'll check if we have at least an '='
+							
+							@split_igual=split(/=/,$LineFile[$count_i]);
+							#print "Sizeof: ".$#split_igual."\n";
+							if($#split_igual > 1){
+								@rec_split_coma = split(/,/,$LineFile[$count_i]);
+								#print ">>>> ".($count_i+1)."\n";
+								for($count_c=0; $count_c <= $#rec_split_coma; $count_c++){
+									$tmp = $rec_split_coma[$count_c];
+									$tmp =~ s/^[\s]+//;
+									
+									if($tmp =~ m/[(]+/){
+										print $tmp;
+										$count_c++;
+										while(not($rec_split_coma[$count_c] =~ m/[)]+/)){										
+											print ",".$rec_split_coma[$count_c];
+											$count_c++;
+										}					
+																			
+										print ",".$rec_split_coma[$count_c];
+										
+									}else{
+										chomp($tmp);
+										if($tmp =~ m/[;]+/){
+											print $tmp."\n";
+										}else{
+											print $tmp.";\n";
+										}									
+									}
+									
+								}
+							}else{
+								print $LineFile[$count_i];
+							}
+							
+						}
+						
+						#check if is necessary to try one more time
+						if($CONTROL_RUN == 1){
+							$count_i++;
+							#generate the new string
+							$LineFile[$count_i] = $TYPE."".$LineFile[$count_i];
+							#print ":::::::".$LineFile[$count_i];
+						}
+						
+							
+					}
+			}else{
+				print $LineFile[$count_i];
+				#$a = 2;
+			}	
+			
+	}else{		
+		#$a = 2;
+		print $LineFile[$count_i];
+	}			
+}
 	
-		
+
+
+
+
+
+
+######## remove a coment in the end of the line
+sub remove_comment_end_line{
+	
+	my ($txt_line_code) = @_;
+	
+	if($txt_line_code =~ m/\/\//){ 
+		$txt_line_code =~ s/\/\/.+/ /;			
+		return $txt_line_code;
 	}
-	$rec_string = "";	
-	$mont_new_txt = "";	
-	#print NEW_FILEC $LinhasFile[$i];
-	print $LinhasFile[$i];
-}
-
-#*** Close the file ***
-#close(NEW_FILEC);
-
-
-#função de montagem da linha com \n
-sub mont_line{
-
-@list_split_vars = @_;
-
-#montando as novas linhas e suas respectivas vars
-$size_split = @list_split_vars;
-
-for($cont_split = 0; $cont_split < $size_split; $cont_split++){
-	
-	if($cont_split != 0){
-	
-		if($list_split_vars[$cont_split] =~ m/(.[^;]+)/g){
-			 $list_split_vars[$cont_split] = $mont_type." ".$1.";\n";
-		}
-		$mont_new_txt = $mont_new_txt." ".$list_split_vars[$cont_split];
-		
-	}else{
-		$list_split_vars[$cont_split] = $list_split_vars[$cont_split]."; \n";
-		$mont_new_txt = $mont_new_txt." ".$list_split_vars[$cont_split];
+	elsif($txt_line_code =~ m/(\/[*]+)/){
+		$txt_line_code =~ s/\/[*]+.+/ /;	
+		return $txt_line_code;
 	}
 	
-	
 }
-return $mont_new_txt;
 
+######## check if in the line has comments
+sub is_a_comment{	
+	
+	my ($txt_line_code) = @_;
+	
+	if($txt_line_code =~ m/(\/\/)/ or $txt_line_code =~ m/(\/[*]+)/){ 
+		#print $txt_line_code."P: ".$1."\n";
+		return 1;
+	}	
 }
+
