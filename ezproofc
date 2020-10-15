@@ -185,16 +185,16 @@ run_ezproofc_with_CE(){
 			new_name_file=`ls $DIR_RESULT_NEW_CODE"/"$CE_name"/"*.c`						
 							
 			#last pre-process
-			$DIR_PROC_PRIMARY -q -l C -c $CONFIG_CFG -f $new_name_file
+			#$DIR_PROC_PRIMARY -q -l C -c $CONFIG_CFG -f $new_name_file
 											
 			#remove temporary files
 			
-			if [ -d "$DIR_RESULT_NEW_CODE" ]; then									
-				rm -r $DIR_RESULT_NEW_CODE
-			fi
-			if [ -d "$DIR_RESULT_ABS" ]; then					
-				rm -r $DIR_RESULT_ABS
-			fi		
+			# if [ -d "$DIR_RESULT_NEW_CODE" ]; then									
+			# 	rm -r $DIR_RESULT_NEW_CODE
+			# fi
+			# if [ -d "$DIR_RESULT_ABS" ]; then					
+			# 	rm -r $DIR_RESULT_ABS
+			# fi		
 			
 		fi		
 	else
@@ -457,6 +457,7 @@ then
 			exit 1;
 elif [ ${received_e} ]
 then	
+	# echo ">> Running from a counterexample ..."
 	run_ezproofc_with_CE $arg_1 $arg_2 $arg_3
 	exit 1; #finsh here
 elif [ ${received_p} ]

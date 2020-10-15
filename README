@@ -1,4 +1,4 @@
----------------------------- EZPROOFC TOOL (Beta) v3 -------------------------------
+---------------------------- EZPROOFC TOOL (Beta) v3.0.1 -------------------------------
 
 		  .-.
 		  /v\
@@ -10,7 +10,7 @@ ________________________________________________________________________________
 Goal: This tool aims to automate the method proposed aims to automate the collection and manipulation of counterexamples in order to instantiate a C program for proving the root cause of the identiﬁed error. Such method may be seen as a complementary technique for the veriﬁcation performed by Bounded Model Checkers 
 
 Author: Herbert O. Rocha E-mail: herberthb12@gmail.com
-Version: 3 - Year: 2012
+Version: 3.0.1 - Year: 2012
 
 Status: This tool is still in development phase to full implementation of the proposed method in this approach.
 __________________________________________________________________________________________
@@ -28,22 +28,6 @@ ________________________________________________________________________________
 __________________________________________________________________________________________
 
 The ESBMC can be downloaded at http://esbmc.org/
-
-In order to install ESBMC on your PC, you should download and save the esbmc-vx.x.tar.gz file on your disk. 
-After that, you should type the following command:
-
-$ tar -xzvf esbmc-v1.12.tar.gz
-
-The ESBMC distribution is split into three directories:
-
-- bin
-- smoke-tests
-- licenses
-
-The directory bin contains the binary file of ESBMC. The directory smoke-tests contains some ANSI-C programs and also 
-includes a shell script that can be used to collect experimental results for different ANSI-C benchmarks 
-(e.g., check the encoding time, decision procedure time, total number of lines of code, total number of properties 
-to be verified, how many properties passed, violated and failed during the verification process).
 
 You should set the environment variable PATH in your .bashrc file as follows:
 
@@ -94,6 +78,10 @@ $ export PATH=$PATH:/home/user/EZProofC_vx/
 Testing EZProofC
 
 $ ezproofc code_samples/D_CBMC_bound_array.c
+
+Using EZProofC from a counterexample:
+
+$ ezproofc -e file.c file.cex
 
 __________________________________________________________________________________________
 

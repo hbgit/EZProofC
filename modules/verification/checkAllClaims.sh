@@ -8,7 +8,7 @@
 #======================================================
 
 #PATH -------->
-ABS_PATH_EZPROOFC="[<??>]"
+ABS_PATH_EZPROOFC="/home/hrocha/Documents/Projects/EZProofC"
 DIR_VERIFICATION=$ABS_PATH_EZPROOFC"/modules/verification"
 #PATH -------->
 

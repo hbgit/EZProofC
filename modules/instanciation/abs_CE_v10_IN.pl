@@ -116,7 +116,8 @@ for ($i=$rec_i_postion_CE; $i <= ($rec_i_postion_VP - 1); $i++) {
 	#regex c[::]+ to avoid references call function
 	#regex ^State.+ o check if the next line was removendo just contain the state
 	#and not($LinhasFile[$pat_state] =~ m/(^State.+)/g)	
-		
+	#print $LinhasFile[$i];
+
 	if( not($LinhasFile[$i] =~ m/(^[\--]+)/g) and not($LinhasFile[$i] =~ m/(^[<]+)/g) and not($LinhasFile[$i] =~ m/(^$)/g) and 
 	   not($LinhasFile[$i] =~ m/(return_)/g) and not($LinhasFile[$i] =~ m/(c[::]+)/g) ){					
 		
@@ -149,6 +150,7 @@ $size_rec_Linhas_CE = @rec_Linhas_CE;
 
 for($cont=0;$cont <= $size_rec_Linhas_CE; $cont++){
 	
+	#print $rec_Linhas_CE[$cont];
 	#obtem a string "line n", o n é o numero da linha
 	if($rec_Linhas_CE[$cont] =~ /(line.[0-9]*)/){
 		
@@ -157,15 +159,18 @@ for($cont=0;$cont <= $size_rec_Linhas_CE; $cont++){
 		   #Line do CE		   
 		   $rec_number_line = $1;				   
 		}
+
+		#print $rec_number_line;
 		
 		#obtendo apenas as linhas com as variaveis que iniciam com o nome do código
 		#deste modo abstraindo os valores da funções
-		$conca_string = $name_c_file."::";
+		#$conca_string = $name_c_file."::";
 		
 		$nextLine = $cont + 1;
 					
-		#ANALISE DAS LINHAS IDENTIFICADA					
-		if($rec_Linhas_CE[$nextLine]=~ /$conca_string/){
+		#ANALISE DAS LINHAS IDENTIFICADA
+		#print 	$rec_Linhas_CE[$nextLine];				
+		if($rec_Linhas_CE[$nextLine]){
 			
 			#TESTAR MAIS ESTA REGEX
 			#----------------------------------------------------------------------------------
@@ -176,12 +181,15 @@ for($cont=0;$cont <= $size_rec_Linhas_CE; $cont++){
 			#A ainda falta verificar a possibilidade para ex. a = (x + y) 
 			#necessario mais testes para verificar contra-exemplo compativel
 			#----------------------------------------------------------------------------------
-			if($rec_Linhas_CE[$nextLine] =~ /(\w[^:]*=.[^\(\)]*)/){			
+			#if($rec_Linhas_CE[$nextLine] =~ /(\w[^:]*=.[^\(\)]*)/){			
+			if($rec_Linhas_CE[$nextLine] =~ /(\w[^:]*=.*)/){			
 				
-				$rec_1 = $1;						
+				$rec_1 = $1;	
+				#print $rec_1."\n";					
 				if($rec_1 =~ /(^.[^=]*)/){
 					
-					#Criando escapes para simbolos como [], para poder aplicar regex depois para validação					
+					#Criando escapes para simbolos como [], para poder aplicar regex depois para validação
+					#print $1;					
 					if($1 =~ m/[][]/){
 						while($1 =~ m/([][])/g){
 							$left = $1;
@@ -195,12 +203,23 @@ for($cont=0;$cont <= $size_rec_Linhas_CE; $cont++){
 					
 					#VAR do CE
 					$rec_var_CE = $1;
-				}						
+				}	
+
 				if($rec_1 =~ /(=.*)/){
+					#print $1."\n";
 					$rec_temp_valor = $1;							
 					if($rec_temp_valor =~ /([^=].*)/){
 						#Value do CE
-						$rec_value_CE = $1;								
+						$rec_value_CE = $1;	
+						if(not $rec_value_CE =~ /&dynamic\_/ and not $rec_value_CE =~ /byte\_extract\_little\_endian/ 
+						   and not $rec_value_CE =~/INVALID9/){
+							if($rec_value_CE =~ /(.*) \(00*/ or $rec_value_CE =~ /(.*) \(10*/){
+								$rec_value_CE = $1;
+							}
+						}else{
+							$rec_var_CE = "";
+						}
+													
 					}
 				}
 			}
@@ -209,11 +228,15 @@ for($cont=0;$cont <= $size_rec_Linhas_CE; $cont++){
 			#para a coleta de dados. Pois para a captura dos valores foi definido que
 			#a proxima apos a linha analisada deve conter o nome do arquivo no linha, deste modo
 			#isolando as outras linhas que não contem o que foi especificado
-			#print $rec_number_line." | ".$rec_var_CE." | ".$rec_value_CE."\n";	
-								
-			geraLista($rec_number_line,$rec_var_CE,$rec_value_CE);	
+			if (not $rec_var_CE eq "")
+			{
+				#  (00000000 00000000 00000000 00000001 10011111 01000000 01000000 00000000)	
+				print $rec_number_line." | ".$rec_var_CE." | ".$rec_value_CE."\n";	
+									
+				geraLista($rec_number_line,$rec_var_CE,$rec_value_CE);	
+			}
 				
-			}														
+		}														
 	}						
 
 }#-> For dos valores do CE
